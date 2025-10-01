@@ -39,17 +39,22 @@ type Time101 interface {
 func (c *phonenumbers) Cin() {
 	c.Number = "-1"
 	c.conuts = 0
-	fmt.Println("请输入手机号:")
 	pattern := `^1[3-9]\d{9}$`
 	var b string
-	fmt.Scan(&b)
-	re, _ := regexp.Compile(pattern)
-	Matched := re.MatchString(b)
-	if Matched {
-		return
-	} else {
-		fmt.Println("您输入号码有误,请重试....")
-		c.Cin()
+	for {
+		fmt.Println("请输入手机号:")
+		fmt.Scan(&b)
+		re, err := regexp.Compile(pattern)
+		if err != nil {
+			fmt.Println("Error:", err)
+		}
+		Matched := re.MatchString(b)
+		if Matched {
+			return
+		} else {
+			fmt.Println("您输入号码有误,请重试....")
+
+		}
 	}
 }
 
@@ -89,46 +94,39 @@ func (c *phonenumbers) Date() bool {
 func (c *phonenumbers) Check() bool {
 	var b string
 	fmt.Scan(&b)
-	patten1 := `{6}$`
-	re, _ := regexp.Compile(patten1)
-	Matched := re.MatchString(b)
-	if Matched {
-		return c.Number == b
-	} else {
-		return false
-	}
+	return c.Number == b
 }
 
 // 判断输出验证码程序
 func (c *phonenumbers) Cout() {
-	fmt.Println("验证码登录请按1  请求验证码请按2")
-	fmt.Scan(&choice)
-	switch choice {
-	case "1":
-		{
-			fmt.Println("请输入验证码:")
-			if c.Check() {
-				fmt.Println("登录成功")
-			} else {
-				fmt.Println("无效验证码")
-				c.Cout()
+	for {
+		fmt.Println("验证码登录请按1  请求验证码请按2")
+		fmt.Scan(&choice)
+		switch choice {
+		case "1":
+			{
+				fmt.Println("请输入验证码:")
+				if c.Check() {
+					fmt.Println("登录成功")
+					return
+				} else {
+					fmt.Println("无效验证码")
+				}
 			}
-		}
-	case "2":
-		{
-			if c.conuts == 0 {
-				fmt.Println(c.Random())
-			} else if c.Time() && c.Date() {
-				fmt.Println(c.Random())
-			} else {
-				fmt.Println("请稍后再试.....")
+		case "2":
+			{
+				if c.conuts == 0 {
+					fmt.Println(c.Random())
+				} else if c.Time() && c.Date() {
+					fmt.Println(c.Random())
+				} else {
+					fmt.Println("请稍后再试.....")
+				}
 			}
-			c.Cout()
-		}
-	default:
-		{
-			fmt.Println("请输入1，2")
-			c.Cout()
+		default:
+			{
+				fmt.Println("请输入1，2")
+			}
 		}
 	}
 }
