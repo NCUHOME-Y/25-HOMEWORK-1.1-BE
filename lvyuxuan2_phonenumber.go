@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+var choice string
+
 func main() {
 	var c phonenumbers
 	c.Cin()
@@ -53,10 +55,15 @@ func (c *phonenumbers) Cin() {
 
 // 生产验证码
 func (c *phonenumbers) Random() string {
-	c.Number = fmt.Sprintf("%06d", rand.Intn(100000))
+	charset := "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+	code := make([]byte, 6)
+	for i := range code {
+		code[i] = charset[rand.Intn(len(charset))]
+	}
 	c.Time1 = time.Now()
 	c.Timejugde = true
 	c.conuts++
+	c.Number = string(code)
 	return c.Number
 }
 
@@ -82,7 +89,7 @@ func (c *phonenumbers) Date() bool {
 func (c *phonenumbers) Check() bool {
 	var b string
 	fmt.Scan(&b)
-	patten1 := `\d{6}$`
+	patten1 := `{6}$`
 	re, _ := regexp.Compile(patten1)
 	Matched := re.MatchString(b)
 	if Matched {
@@ -94,11 +101,10 @@ func (c *phonenumbers) Check() bool {
 
 // 判断输出验证码程序
 func (c *phonenumbers) Cout() {
-	var choice int
 	fmt.Println("验证码登录请按1  请求验证码请按2")
 	fmt.Scan(&choice)
 	switch choice {
-	case 1:
+	case "1":
 		{
 			fmt.Println("请输入验证码:")
 			if c.Check() {
@@ -108,7 +114,7 @@ func (c *phonenumbers) Cout() {
 				c.Cout()
 			}
 		}
-	case 2:
+	case "2":
 		{
 			if c.conuts == 0 {
 				fmt.Println(c.Random())
