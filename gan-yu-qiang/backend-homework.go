@@ -26,6 +26,12 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 } //这个是初始化验证码种子，方便每次都会刷新验证码
 
+func NewVerifyPhoneNum() *VerifyPhoneNum {
+	return &VerifyPhoneNum{
+		phoneVerifyMap: make(map[string]*verifyInfo),
+	}
+}
+
 func (v *VerifyPhoneNum) verificationCode(phone string) (string, error) {
 	if len(phone) != 11 {
 		return "", errors.New("请输入正确的电话号码格式，是11位哦")
@@ -95,9 +101,7 @@ func (v *VerifyPhoneNum) login(phone, inputCode string) error {
 
 func main() {
 	var phone string
-	method := VerifyPhoneNum{
-		phoneVerifyMap: make(map[string]*verifyInfo),
-	}
+	method := NewVerifyPhoneNum()
 	fmt.Println("请输入你的手机号码登录")
 	fmt.Scanln(&phone)
 	code, err := method.getCode(phone)
