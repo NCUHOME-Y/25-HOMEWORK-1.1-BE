@@ -15,15 +15,20 @@ type verifyInfo struct {
 	isUsed     bool      // 是否已使用
 }
 
-const charset = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-const codeLength = 6 //
+var phoneVerifyMap = make(map[string]*verifyInfo)
 
-var phoneVerifyMap = make(map[string]*verifyInfo) //值为结构体的指针为了这一步		info = &verifyInfo{}phoneVerifyMap[phone] = info 存到info这个新指针变量
+type VerifyPhoneNum struct {
+	phoneVerifyMap map[string]*verifyInfo
+}
+
+const charset = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const codeLength = 6
+
 func init() {
 	rand.Seed(time.Now().UnixNano())
 } //这个是初始化验证码种子，方便每次都会刷新验证码
 
-func verificationCode(phone string) (string, error) {
+func (v *VerifyPhoneNum) verificationCode(phone string) (string, error) {
 	if len(phone) != 11 {
 		return "", errors.New("请输入正确的电话号码格式，是11位哦")
 	}
@@ -42,9 +47,9 @@ func verificationCode(phone string) (string, error) {
 	return string(code), nil //将切片类型的返回值换成字符串类型，因为之后要用字符串类型的
 }
 
-func getCode(phone string) (string, error) {
+func (v *VerifyPhoneNum) getCode(phone string) (string, error) {
 	// 生成验证码(先验证手机号)
-	code, err := verificationCode(phone)
+	code, err := v.verificationCode(phone)
 	if err != nil {
 		return "", err
 	}
@@ -74,7 +79,7 @@ func getCode(phone string) (string, error) {
 	return code, nil
 }
 
-func login(phone, inputCode string) error {
+func (v *VerifyPhoneNum) login(phone, inputCode string) error {
 	info := phoneVerifyMap[phone]
 
 	if time.Now().Sub(info.sendTime) > 5*time.Minute {
