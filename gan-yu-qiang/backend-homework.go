@@ -84,7 +84,10 @@ func (v *VerifyPhoneNum) getCode(phone string) (string, error) {
 }
 
 func (v *VerifyPhoneNum) login(phone, inputCode string) error {
-	info := v.phoneVerifyMap[phone]
+	info, exists := v.phoneVerifyMap[phone]
+	if !exists || info == nil {
+		return errors.New("该手机号未注册或未发送验证码")
+	}
 
 	if time.Now().Sub(info.sendTime) > 5*time.Minute {
 		return errors.New("验证码已过期(有效期5分钟)，请重新获取")
