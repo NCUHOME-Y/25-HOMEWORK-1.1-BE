@@ -15,8 +15,6 @@ type verifyInfo struct {
 	isUsed     bool      // 是否已使用
 }
 
-var phoneVerifyMap = make(map[string]*verifyInfo)
-
 type VerifyPhoneNum struct {
 	phoneVerifyMap map[string]*verifyInfo
 }
@@ -55,11 +53,11 @@ func (v *VerifyPhoneNum) getCode(phone string) (string, error) {
 	}
 
 	now := time.Now()
-	info, exists := phoneVerifyMap[phone]
+	info, exists := v.phoneVerifyMap[phone]
 
 	if !exists {
 		info = &verifyInfo{}
-		phoneVerifyMap[phone] = info
+		v.phoneVerifyMap[phone] = info
 	}
 
 	if info.dailyCount >= 5 {
@@ -80,7 +78,7 @@ func (v *VerifyPhoneNum) getCode(phone string) (string, error) {
 }
 
 func (v *VerifyPhoneNum) login(phone, inputCode string) error {
-	info := phoneVerifyMap[phone]
+	info := v.phoneVerifyMap[phone]
 
 	if time.Now().Sub(info.sendTime) > 5*time.Minute {
 		return errors.New("验证码已过期(有效期5分钟)，请重新获取")
@@ -97,9 +95,12 @@ func (v *VerifyPhoneNum) login(phone, inputCode string) error {
 
 func main() {
 	var phone string
+	method := VerifyPhoneNum{
+		phoneVerifyMap: make(map[string]*verifyInfo),
+	}
 	fmt.Println("请输入你的手机号码登录")
 	fmt.Scanln(&phone)
-	code, err := getCode(phone)
+	code, err := method.getCode(phone)
 	if err != nil {
 		fmt.Println("错误：", err)
 		return
@@ -111,10 +112,10 @@ func main() {
 		fmt.Scanln(&count)
 		switch count {
 		case "1":
-			fmt.Print("请输入验证码：")
+			fmt.Print("请输入验证码(区分大小写)：")
 			var verifyCode string
 			fmt.Scanln(&verifyCode)
-			err := login(phone, verifyCode)
+			err := method.login(phone, verifyCode)
 			if err != nil {
 				fmt.Println("登录失败：", err)
 				continue
@@ -123,7 +124,7 @@ func main() {
 			return
 
 		case "2":
-			newCode, err := getCode(phone)
+			newCode, err := method.getCode(phone)
 			if err != nil {
 				fmt.Println("获取失败：", err)
 				continue
