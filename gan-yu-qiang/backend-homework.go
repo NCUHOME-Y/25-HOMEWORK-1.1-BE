@@ -66,6 +66,10 @@ func (v *VerifyPhoneNum) getCode(phone string) (string, error) {
 		v.phoneVerifyMap[phone] = info
 	}
 
+	if !info.sendTime.IsZero() && (info.sendTime.Year() != now.Year() || info.sendTime.YearDay() != now.YearDay()) {
+		info.dailyCount = 0 //每日重置
+	}
+
 	if info.dailyCount >= 5 {
 		return "", errors.New("今日验证码获取次数已达上限(5次)")
 	}
@@ -86,7 +90,7 @@ func (v *VerifyPhoneNum) getCode(phone string) (string, error) {
 func (v *VerifyPhoneNum) login(phone, inputCode string) error {
 	info := v.phoneVerifyMap[phone]
 
-	if time.Now().Sub(info.sendTime) > 5*time.Minute {
+	if time.Since(info.sendTime) > 5*time.Minute {
 		return errors.New("验证码已过期(有效期5分钟)，请重新获取")
 	}
 
