@@ -22,10 +22,6 @@ type VerifyPhoneNum struct {
 const charset = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 const codeLength = 6
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
-} //这个是初始化验证码种子，方便每次都会刷新验证码
-
 func NewVerifyPhoneNum() *VerifyPhoneNum {
 	return &VerifyPhoneNum{
 		phoneVerifyMap: make(map[string]*verifyInfo),
