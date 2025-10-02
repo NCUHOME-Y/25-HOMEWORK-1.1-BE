@@ -85,7 +85,7 @@ func (v *VerifyPhoneNum) getCode(phone string) (string, error) {
 
 func (v *VerifyPhoneNum) login(phone, inputCode string) error {
 	info, exists := v.phoneVerifyMap[phone]
-	if !exists || info == nil {
+	if !exists {
 		return errors.New("该手机号未注册或未发送验证码")
 	}
 
