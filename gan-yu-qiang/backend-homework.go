@@ -22,10 +22,6 @@ type VerifyPhoneNum struct {
 const charset = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 const codeLength = 6
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
-} //这个是初始化验证码种子，方便每次都会刷新验证码
-
 func NewVerifyPhoneNum() *VerifyPhoneNum {
 	return &VerifyPhoneNum{
 		phoneVerifyMap: make(map[string]*verifyInfo),
@@ -88,7 +84,10 @@ func (v *VerifyPhoneNum) getCode(phone string) (string, error) {
 }
 
 func (v *VerifyPhoneNum) login(phone, inputCode string) error {
-	info := v.phoneVerifyMap[phone]
+	info, exists := v.phoneVerifyMap[phone]
+	if !exists {
+		return errors.New("该手机号未注册或未发送验证码")
+	}
 
 	if time.Since(info.sendTime) > 5*time.Minute {
 		return errors.New("验证码已过期(有效期5分钟)，请重新获取")
