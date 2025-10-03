@@ -13,16 +13,17 @@ import (
 )
 
 // 存入data.json
-func (s *Map) SaveToFile(filename string) error {
-	file, err1 := os.Create(filename)
+func (s *Map) SaveToFile() error {
+	file, err1 := json.MarshalIndent(s, " ", "  ")
 	if err1 != nil {
 		return err1
 	}
-	err2 := json.NewEncoder(file).Encode(s)
+	err2 := os.WriteFile("data.json", file, 0644)
+
 	if err2 != nil {
 		return err2
 	}
-	defer file.Close()
+	fmt.Println("已成功存入数据")
 	return nil
 }
 
@@ -33,11 +34,12 @@ func LoadFromFile(filename string) (Map, error) {
 	if err1 != nil {
 		return s, err1
 	}
+	defer file.Close()
 	err := json.NewDecoder(file).Decode(&s)
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	fmt.Println("已成功读取数据")
 	return s, err
 }
 
@@ -117,12 +119,14 @@ func (s *Map) TestCode(number, code string) error {
 
 func main() {
 	m := make(Map)
+
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		fmt.Println("\n请输入手机号：")
 
 		phone, _ := reader.ReadString('\n')
 		phone = strings.TrimSpace(phone)
+		LoadFromFile("./data.json")
 		err := IsPhone(phone)
 		if err != nil {
 			fmt.Println(err)
@@ -158,5 +162,5 @@ func main() {
 		}
 		break
 	}
-
+	m.SaveToFile()
 }
