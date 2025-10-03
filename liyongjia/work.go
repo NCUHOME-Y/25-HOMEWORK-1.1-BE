@@ -1,10 +1,10 @@
 package main
 
 import (
+	"crypto/rand"
 	"fmt"
-	"math/rand"
+	"math/big"
 	"regexp"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -12,26 +12,23 @@ import (
 type CodeSend struct {
 	lastphonetime map[string]time.Time //时间
 	mutex         sync.Mutex           //锁
-	password      map[string]int       //存储验证码
-	sendCont      map[string]int       //发送次数
-
+	password      map[string]string    //存储验证码
 }
 
 // 初始化:用常量赋予结构体变量
 func CodeSendInit() *CodeSend {
 	return &CodeSend{
 		lastphonetime: make(map[string]time.Time),
-		password:      make(map[string]int),
-		sendCont:      make(map[string]int),
+		password:      make(map[string]string),
 	}
 }
 
 // 接口
-type CodeServier interface {
+type CodeService interface {
 	CanSendCode(phone string) error
-	JudgeCode(phone string, m int) bool
+	JudgeCode(phone string, m string) bool
 	Clear(phone string)
-	Random(s []int)
+	Random() string
 }
 
 func (c *CodeSend) CanSendCode(phone string) error {
@@ -55,8 +52,6 @@ func (c *CodeSend) CanSendCode(phone string) error {
 // 当日最多发送五次
 var counter int = 0 //全局变量，记录发送次数
 func (c *CodeSend) DaliyLimit(phone string) int {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
 	// 计算到第二天0点的时间
 	now := c.lastphonetime[phone] //获取上次发送验证码的时间
 	nextDay := now.Add(24 * time.Hour)
@@ -72,7 +67,7 @@ func (c *CodeSend) DaliyLimit(phone string) int {
 }
 
 // 验证验证码是否有效
-func (c *CodeSend) JudgeCode(phone string, m int) bool {
+func (c *CodeSend) JudgeCode(phone string, m string) bool {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	info, exit := c.password[phone]
@@ -90,15 +85,19 @@ func (c *CodeSend) Clear(phone string) {
 }
 
 // 生成随机数
-func (c *CodeSend) Random(s []int) {
-	for i := 0; i < len(s); i++ {
-		//随机整数
-		s[i] = rand.Intn(10)
+func (c *CodeSend) Random() string {
+	const char = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+	charlen := big.NewInt(int64(len(char)))
+	result1 := make([]byte, 6)
+	for i := range result1 {
+		num, _ := rand.Int(rand.Reader, charlen)
+		result1[i] = char[num.Int64()]
 	}
+	return string(result1)
 }
 
 func main() {
-	var service CodeServier = CodeSendInit()
+	var service CodeService = CodeSendInit()
 
 	//判定手机号
 	fmt.Println("请输入手机号")
@@ -117,13 +116,12 @@ func main() {
 		//判断是否生成验证码
 		//循环选择
 		for {
-			var result2 int
 			var order int
 			fmt.Println("输⼊1:表⽰使⽤验证码登录	输⼊2:表⽰获取验证码")
 			fmt.Scanln(&order)
 			switch order {
 			case 1:
-				var m int
+				var m string
 				fmt.Println("输入验证码")
 				fmt.Scanln(&m) //输入验证码
 				code := service.(*CodeSend).password[phone]
@@ -145,20 +143,9 @@ func main() {
 					fmt.Println("发送失败，", err)
 				} else {
 					//生成随机数
-					n := 6
-					s := make([]int, n)
-					service.Random(s)
-
-					//类型转化  []int>>str>>int
-					var str string
-
-					for _, date := range s {
-						str += strconv.Itoa(date) // 遍历切片并拼接字符串strconv.Itoa(date)：将整数 date 转换为字符串str
-					}
-					result2, _ = strconv.Atoi(str) //strconv.Atoi(str)：将字符串str转换回整数result2 Atoi 是 "ASCII to Integer" 的缩写。因为一定为整数类型所以省去了err
-					fmt.Printf("验证码：")
-					fmt.Println(result2)
-					service.(*CodeSend).password[phone] = result2
+					result := service.Random()
+					fmt.Printf("验证码：%v\n", result)
+					service.(*CodeSend).password[phone] = result
 				}
 			default:
 				fmt.Println("无效操作")
