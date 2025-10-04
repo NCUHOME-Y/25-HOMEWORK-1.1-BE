@@ -1,0 +1,132 @@
+package main
+
+import (
+	"fmt"
+	"math/rand"
+	"regexp"
+	"time"
+)
+
+var choice string
+
+func main() {
+	var c phonenumbers
+	c.Cin()
+	c.Cout()
+}
+
+type phonenumbers struct {
+	Number    string
+	Time1     time.Time
+	Timejugde bool
+	conuts    int
+}
+
+type Cincheckphone interface {
+	Cin()
+	Check() bool
+	Cout()
+}
+type Randome interface {
+	Random() string
+}
+type Time101 interface {
+	Time() bool
+	Date() bool
+}
+
+// 输入手机号
+func (c *phonenumbers) Cin() {
+	c.Number = "-1"
+	c.conuts = 0
+	pattern := `^1[3-9]\d{9}$`
+	var b string
+	for {
+		fmt.Println("请输入手机号:")
+		fmt.Scan(&b)
+		re, err := regexp.Compile(pattern)
+		if err != nil {
+			fmt.Println("Error:", err)
+		}
+		Matched := re.MatchString(b)
+		if Matched {
+			return
+		} else {
+			fmt.Println("您输入号码有误,请重试....")
+
+		}
+	}
+}
+
+// 生产验证码
+func (c *phonenumbers) Random() string {
+	charset := "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+	code := make([]byte, 6)
+	for i := range code {
+		code[i] = charset[rand.Intn(len(charset))]
+	}
+	c.Time1 = time.Now()
+	c.Timejugde = true
+	c.conuts++
+	c.Number = string(code)
+	return c.Number
+}
+
+// 判断时间
+func (c *phonenumbers) Time() bool {
+	duration := time.Since(c.Time1)
+	if duration < 1*time.Minute {
+		c.Timejugde = false
+	}
+	return c.Timejugde
+}
+
+// 判断次数
+func (c *phonenumbers) Date() bool {
+	duration := time.Since(c.Time1)
+	if duration < 24*time.Hour && c.conuts >= 5 {
+		c.Timejugde = false
+	}
+	return c.Timejugde
+}
+
+// 验证输入的验证码
+func (c *phonenumbers) Check() bool {
+	var b string
+	fmt.Scan(&b)
+	return c.Number == b
+}
+
+// 判断输出验证码程序
+func (c *phonenumbers) Cout() {
+	for {
+		fmt.Println("验证码登录请按1  请求验证码请按2")
+		fmt.Scan(&choice)
+		switch choice {
+		case "1":
+			{
+				fmt.Println("请输入验证码:")
+				if c.Check() {
+					fmt.Println("登录成功")
+					return
+				} else {
+					fmt.Println("无效验证码")
+				}
+			}
+		case "2":
+			{
+				if c.conuts == 0 {
+					fmt.Println(c.Random())
+				} else if c.Time() && c.Date() {
+					fmt.Println(c.Random())
+				} else {
+					fmt.Println("请稍后再试.....")
+				}
+			}
+		default:
+			{
+				fmt.Println("请输入1，2")
+			}
+		}
+	}
+}
