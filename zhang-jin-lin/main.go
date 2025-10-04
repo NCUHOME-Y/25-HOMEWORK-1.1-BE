@@ -37,7 +37,7 @@ func LoadFromFile(filename string) (Map, error) {
 	defer file.Close()
 	err := json.NewDecoder(file).Decode(&s)
 	if err != nil {
-		return nil, err
+		return s, err
 	}
 	fmt.Println("已成功读取数据")
 	return s, err
@@ -120,13 +120,20 @@ func (s *Map) TestCode(number, code string) error {
 func main() {
 	m := make(Map)
 
+	// 尝试从文件加载数据
+	var err error
+	m, err = LoadFromFile("./data.json")
+	if err != nil {
+		fmt.Println("加载数据失败，使用空数据：", err)
+		m = make(Map)
+	}
+
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		fmt.Println("\n请输入手机号：")
 
 		phone, _ := reader.ReadString('\n')
 		phone = strings.TrimSpace(phone)
-		LoadFromFile("./data.json")
 		err := IsPhone(phone)
 		if err != nil {
 			fmt.Println(err)
